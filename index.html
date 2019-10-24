@@ -87,13 +87,21 @@
 <form onsubmit="expand();" id="form">
 
     <p>
-        <label for="timeRange">Time Range <span class="required">*</span></label>
-        <input type="text" name="$TIMERANGE$" id="timeRange" placeholder="-12h" size="50">
+        <label for="timeRange">
+            Time Range <span class="required">*</span>
+        </label>
+        <input type="text" name="$TIMERANGE$" id="timeRange" value="-1d" size="50">
+        <br/>
+        <span class="example">Example: -1d -12h -15m</span>
     </p>
 
     <p>
-        <label for="cardId">Message UUID <span class="required">*</span></label>
-        <input type="text" name="$CARDID$" id="cardId" placeholder="8d4a305e-5912-41e4-8abc-bb87f89ab97f" size="50">
+        <label for="cardId">
+            Message UUID <span class="required">*</span>
+        </label>
+        <input type="text" name="$CARDID$" id="cardId" size="50">
+        <br/>
+        <span class="example">Example: 8d4a305e-5912-41e4-8abc-bb87f89ab97f</span>
     </p>
 
     <p>
@@ -183,6 +191,11 @@
     }
     .form-style-1 .required{
         color:#FF0000;
+    }
+
+    .form-style-1 .example {
+        font-weight: normal;
+        color: #A2A2A2;
     }
 
     #fallbacks {

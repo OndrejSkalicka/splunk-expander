@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Splunk Expander</title>
+
+
+
+    <script type="text/javascript">
+
+        function expand() {
+            event.preventDefault();
+
+            let splunkUrls = {
+                staging: [
+                    'https://citrixsys.splunkcloud.com/en-US/app/search_workspace/search?earliest=$TIMERANGE$&latest=now&q=search%20index%3D%22staging_ws_services%22%20%20Product%3Dmicroapps%20Message%3D%22*$CARDID$*%22&display.page.search.mode=fast&dispatch.sample_ratio=1&display.general.type=events&sid=1571917362.1016431_3696DB04-2468-487B-9E6A-820F296FF343',
+                    'https://dashboards.citrite.net/en-US/app/dig_public/eventiot_hub_incoming_data?form.field1.earliest=$TIMERANGE$&form.field1.latest=now&form.source=(index%3Ddig_dev%20OR%20index%3Ddig_telemetry%20OR%20index%3Ddig_cas_daily%20OR%20index%3Ddig_cas_dev%20OR%20index%3Ddig_cas_stage%20OR%20index%3Ddig_cas_prod)%20source%3Deventhub_*%20NOT%20source%3Deventhub_*_sdb&form.sourcetype=*&form.value=$CARDID$&form.grouping1=%7C%20timechart%20count',
+                    'https://dashboards.citrite.net/en-US/app/dig_public/cas_iws_notifications?form.field1.earliest=$TIMERANGE$&form.field1.latest=now&form.environment=dig_cas_stage&form.tenantId=*&form.notificationTitle=*&form.channel=*&form.recipientOID=*&form.recipientEmail=*&form.recipientType=*&form.sourceOrigin=*&form.id=$CARDID$',
+                    'https://citrixsys.splunkcloud.com/en-US/app/search_workspace/search?earliest=$TIMERANGE$&latest=now&display.page.search.mode=fast&dispatch.sample_ratio=1&display.general.type=events&q=search%20index%3D%22staging_ws_services%22%20%20Product%3D%22com.citrix.uns%22%20ComponentName%3D%22cas-event-consumer%22%20Message%3D%22Message%20received%3A*id%3D$CARDID$*%22&sid=1571823185.4313494_46B8B93B-6AFB-413D-AC6C-DC6C638083D8'
+                 ],
+                production: [
+                    'https://citrixsys.splunkcloud.com/en-US/app/search_workspace/search?earliest=$TIMERANGE$&latest=now&q=search%20index%3D%22production_ws_services%22%20%20Product%3Dmicroapps%20Message%3D%22*$CARDID$*%22&display.page.search.mode=fast&dispatch.sample_ratio=1&display.general.type=events&sid=1571820589.4307218_46B8B93B-6AFB-413D-AC6C-DC6C638083D8',
+                    'https://dashboards.citrite.net/en-US/app/dig_public/eventiot_hub_incoming_data?form.field1.earliest=$TIMERANGE$&form.field1.latest=now&form.source=(index%3Ddig_dev%20OR%20index%3Ddig_telemetry%20OR%20index%3Ddig_cas_daily%20OR%20index%3Ddig_cas_dev%20OR%20index%3Ddig_cas_stage%20OR%20index%3Ddig_cas_prod)%20source%3Deventhub_*%20NOT%20source%3Deventhub_*_sdb&form.sourcetype=*&form.value=$CARDID$&form.grouping1=%7C%20timechart%20count',
+                    'https://dashboards.citrite.net/en-US/app/dig_public/cas_iws_notifications?form.field1.earliest=$TIMERANGE$&form.field1.latest=now&form.environment=dig_cas_prod&form.tenantId=*&form.notificationTitle=*&form.channel=*&form.recipientOID=*&form.recipientEmail=*&form.recipientType=*&form.sourceOrigin=*&form.id=$CARDID$',
+                    'https://citrixsys.splunkcloud.com/en-US/app/search_workspace/search?earliest=$TIMERANGE$&latest=now&display.page.search.mode=fast&dispatch.sample_ratio=1&display.general.type=events&q=search%20index%3D%22production_ws_services%22%20%20Product%3D%22com.citrix.uns%22%20ComponentName%3D%22cas-event-consumer%22%20Message%3D%22Message%20received%3A*id%3D$CARDID$*%22&sid=1571823185.4313494_46B8B93B-6AFB-413D-AC6C-DC6C638083D8'
+                ]
+            };
+
+
+            const formElements = document.getElementById("form").elements;
+            const environment = formElements.environment.value;
+            const openPopups = formElements.openPopups.checked;
+            const makeLinks = formElements.makeLinks.checked;
+
+            for (let i = 0 ; i < formElements.length ; i++) {
+                const item = formElements.item(i);
+
+                if (item.type === 'text') {
+                    if (item.value.trim() === '') {
+                        alert(`Fill the field: ${item.name}`);
+                        return;
+                    }
+
+                    splunkUrls[environment].map((url, index) =>
+                        splunkUrls[environment][index] = url.replace(item.name, item.value)
+                    );
+                }
+            }
+
+            const linksParent = document.getElementById('fallbacks');
+            const links = Array.from(document.getElementsByClassName('fallbackLink'));
+            links.map(link => linksParent.removeChild(link));
+
+            splunkUrls[environment].map((url, index) => {
+
+                if (makeLinks) {
+                    const a = document.createElement('a');
+                    const link = document.createTextNode(`Dashboard ${index + 1}`);
+                    a.appendChild(link);
+                    a.href = url;
+                    a.target = '_blank';
+                    a.className = 'fallbackLink';
+                    linksParent.appendChild(a);
+                }
+
+                if (openPopups) {
+                    window.open(url);
+                }
+            });
+
+        }
+
+    </script>
+
+</head>
+<body>
+
+<div class="form-style-1">
+
+
+<h1>Splunk Expander</h1>
+
+    <div>Tool for opening Splunk dashboards for easier tracking of Workspace cards.<br/>
+        (Note: Disable popup blocking in the browser.)
+    </div>
+
+<form onsubmit="expand();" id="form">
+
+    <p>
+        <label for="timeRange">Time Range <span class="required">*</span></label>
+        <input type="text" name="$TIMERANGE$" id="timeRange" placeholder="-12h" size="50">
+    </p>
+
+    <p>
+        <label for="cardId">Message UUID <span class="required">*</span></label>
+        <input type="text" name="$CARDID$" id="cardId" placeholder="8d4a305e-5912-41e4-8abc-bb87f89ab97f" size="50">
+    </p>
+
+    <p>
+        <label for="staging"><input type="radio" name="environment" value="staging" id="staging" checked><span>Staging</span></label>
+        <label for="production"><input type="radio" name="environment" value="production" id="production"><span>Production</span></label>
+    </p>
+
+    <p>
+        <label for="production"><input type="checkbox" name="openPopups" id="openPopups" checked><span>Open Splunk Windows</span></label>
+        <label for="staging"><input type="checkbox" name="makeLinks" id="makeLinks" checked><span>Create Links</span></label>
+    </p>
+
+    <input type="submit" id="expandButton" name="submit" value="Open Splunk Windows / Create Links"/>
+
+</form>
+    <div id="fallbacks"></div>
+</div>
+
+
+<style type="text/css">
+    .form-style-1 {
+        margin:10px auto;
+        max-width: 400px;
+        padding: 20px 12px 10px 20px;
+        font: 13px "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    }
+    .form-style-1 li {
+        padding: 0;
+        display: block;
+        list-style: none;
+        margin: 10px 0 0 0;
+    }
+    .form-style-1 label{
+        margin:0 0 3px 0;
+        padding:0;
+        display:block;
+        font-weight: bold;
+    }
+    .form-style-1 input[type=text],
+    .form-style-1 input[type=date],
+    .form-style-1 input[type=datetime],
+    .form-style-1 input[type=number],
+    .form-style-1 input[type=search],
+    .form-style-1 input[type=time],
+    .form-style-1 input[type=url],
+    .form-style-1 input[type=email],
+    textarea,
+    select{
+        box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        border:1px solid #BEBEBE;
+        padding: 7px;
+        margin:0;
+        -webkit-transition: all 0.30s ease-in-out;
+        -moz-transition: all 0.30s ease-in-out;
+        -o-transition: all 0.30s ease-in-out;
+        outline: none;
+    }
+    .form-style-1 input[type=text]:focus,
+    .form-style-1 input[type=date]:focus,
+    .form-style-1 input[type=datetime]:focus,
+    .form-style-1 input[type=number]:focus,
+    .form-style-1 input[type=search]:focus,
+    .form-style-1 input[type=time]:focus,
+    .form-style-1 input[type=url]:focus,
+    .form-style-1 input[type=email]:focus,
+    .form-style-1 textarea:focus,
+    .form-style-1 select:focus{
+        -moz-box-shadow: 0 0 8px #65A637;
+        -webkit-box-shadow: 0 0 8px #65A637;
+        box-shadow: 0 0 8px #65A637;
+        border: 1px solid #65A637;
+    }
+    .form-style-1 input[type=submit], .form-style-1 input[type=button]{
+        background: #65A637;
+        padding: 8px 15px 8px 15px;
+        border: none;
+        color: #fff;
+        font-size: 13px;
+    }
+    .form-style-1 input[type=submit]:hover, .form-style-1 input[type=button]:hover{
+        background: #65A637;
+        box-shadow:none;
+        -moz-box-shadow:none;
+        -webkit-box-shadow:none;
+    }
+    .form-style-1 .required{
+        color:#FF0000;
+    }
+
+    #fallbacks {
+        margin-top: 20px;
+    }
+    .fallbackLink {
+        display: block;
+        margin-top: 6px;
+    }
+</style>
+
+</body>
+</html>

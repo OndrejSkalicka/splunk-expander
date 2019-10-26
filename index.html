@@ -15,9 +15,19 @@
             3: 'UNS consumer',
         };
 
-        function expand() {
+        function formSubmit() {
             event.preventDefault();
+            expand(true);
+        }
 
+        function uuidChanged() {
+            const formElements = document.getElementById("form").elements;
+            if (formElements.cardId.value.trim() !== '') {
+                expand(false);
+            }
+        }
+
+        function expand(openPopups) {
             let splunkUrls = {
                 staging: [
                     'https://citrixsys.splunkcloud.com/en-US/app/search_workspace/search?earliest=$TIMERANGE$&latest=now&q=search%20index%3D%22staging_ws_services%22%20%20Product%3Dmicroapps%20Message%3D%22*$CARDID$*%22&display.page.search.mode=fast&dispatch.sample_ratio=1&display.general.type=events&sid=1571917362.1016431_3696DB04-2468-487B-9E6A-820F296FF343',
@@ -36,8 +46,6 @@
 
             const formElements = document.getElementById("form").elements;
             const environment = formElements.environment.value;
-            const openPopups = formElements.openPopups.checked;
-            const makeLinks = formElements.makeLinks.checked;
 
             for (let i = 0; i < formElements.length; i++) {
                 const item = formElements.item(i);
@@ -60,15 +68,13 @@
 
             splunkUrls[environment].map((url, index) => {
 
-                if (makeLinks) {
-                    const a = document.createElement('a');
-                    const link = document.createTextNode('→ ' + dashboardNames[index]);
-                    a.appendChild(link);
-                    a.href = url;
-                    a.target = '_blank';
-                    a.className = 'fallbackLink';
-                    linksParent.appendChild(a);
-                }
+                const a = document.createElement('a');
+                const link = document.createTextNode('→ ' + dashboardNames[index]);
+                a.appendChild(link);
+                a.href = url;
+                a.target = '_blank';
+                a.className = 'fallbackLink';
+                linksParent.appendChild(a);
 
                 if (openPopups) {
                     // see https://stackoverflow.com/a/2917
@@ -91,19 +97,19 @@
 <div class="form-style-1">
 
 
-    <h1>Splunk Expander</h1>
+    <h1>UNS Splunk Expander</h1>
 
     <div>Tool for opening Splunk dashboards for easier tracking of Workspace cards.<br/>
         (Note: Disable popup blocking in the browser.)
     </div>
 
-    <form onsubmit="expand();" id="form">
+    <form onsubmit="formSubmit();" id="form">
 
         <p>
             <label for="timeRange">
                 Time Range <span class="required">*</span>
             </label>
-            <input type="text" name="$TIMERANGE$" id="timeRange" value="-1d" size="50">
+            <input type="text" name="$TIMERANGE$" id="timeRange" value="-1d" size="50" onchange="uuidChanged()" onkeyup="uuidChanged()">
             <br/>
             <span class="example">Example: -1d -12h -15m</span>
         </p>
@@ -112,22 +118,17 @@
             <label for="cardId">
                 Message UUID <span class="required">*</span>
             </label>
-            <input type="text" name="$CARDID$" id="cardId" size="50">
+            <input type="text" name="$CARDID$" id="cardId" size="50" onchange="uuidChanged()" onkeyup="uuidChanged()">
             <br/>
             <span class="example">Example: 8d4a305e-5912-41e4-8abc-bb87f89ab97f</span>
         </p>
 
         <p>
-            <label for="staging"><input type="radio" name="environment" value="staging" id="staging" checked><span>Staging</span></label>
-            <label for="production"><input type="radio" name="environment" value="production" id="production"><span>Production</span></label>
+            <label for="staging"><input type="radio" name="environment" value="staging" id="staging" onchange="uuidChanged()" checked><span>Staging</span></label>
+            <label for="production"><input type="radio" name="environment" value="production" id="production" onchange="uuidChanged()"><span>Production</span></label>
         </p>
 
-        <p>
-            <label for="openPopups"><input type="checkbox" name="openPopups" id="openPopups" checked><span>Open Splunk Windows</span></label>
-            <label for="makeLinks"><input type="checkbox" name="makeLinks" id="makeLinks" checked><span>Create Links</span></label>
-        </p>
-
-        <input type="submit" id="expandButton" name="submit" value="Open Splunk Windows / Create Links"/>
+        <input type="submit" id="expandButton" name="submit" value="Open Splunk Windows"/>
 
     </form>
     <div id="fallbacks"></div>

@@ -16,12 +16,19 @@
                 document.getElementById("timeRange").value = timeRange;
             }
 
+            const cardId = localStorage.getItem("cardId");
+            if (cardId !== null) {
+                document.getElementById("cardId").value = cardId;
+            }
+
             const environment = localStorage.getItem("environment");
             if (environment === "production") {
                 document.getElementById("production").checked = true;
             } else {
                 document.getElementById("staging").checked = true;
             }
+
+            uuidChanged();
         };
 
         const dashboardNames = {
@@ -44,6 +51,7 @@
             }
 
             localStorage.setItem("timeRange", document.getElementById("timeRange").value);
+            localStorage.setItem("cardId", document.getElementById("cardId").value);
             localStorage.setItem("environment", document.getElementById("production").checked ? "production" : "staging");
         }
 

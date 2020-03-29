@@ -28,15 +28,25 @@
                 document.getElementById("staging").checked = true;
             }
 
+            const geo = localStorage.getItem("geo");
+            if (geo === "eastus2") {
+                document.getElementById("eastus2").checked = true;
+            } else if (geo === "westeurope") {
+                document.getElementById("westeurope").checked = true;
+            } else if  (geo === "southeastasia") {
+                document.getElementById("southeastasia").checked = true;
+            } else {
+                document.getElementById("eastus2").checked = true;
+            }
+
             uuidChanged();
         };
 
         const dashboardNames = {
-            0: 'MA outgoing',
-            1: 'CAS input',
-            2: 'CAS outgoing / NB Kafka',
-            3: 'UNS CEC',
-            4: 'UNS (DB)',
+            0: 'Microapps Server - Send to CAS',
+            1: 'CAS - Input queue',
+            2: 'CAS - Output queue',
+            3: 'UNS - Card saved'
         };
 
         function formSubmit() {
@@ -53,25 +63,43 @@
             localStorage.setItem("timeRange", document.getElementById("timeRange").value);
             localStorage.setItem("cardId", document.getElementById("cardId").value);
             localStorage.setItem("environment", document.getElementById("production").checked ? "production" : "staging");
+            localStorage.setItem("geo", document.querySelector('input[name="geo"]:checked').value); 
+        }
+
+        function getCasIndex() {
+            var environment = document.querySelector('input[name="environment"]:checked').value;
+            var geo = document.querySelector('input[name="geo"]:checked').value;
+
+            if (environment == "production" && geo == "eastus2") {
+                return "dig_cas_prod";
+            } else if (environment == "production" && geo == "westeurope") {
+                return "production_cas_eu";
+            } else if (environment == "production" && geo == "southeastasia") {
+                return "production_cas_eventsaps";
+            } else if (environment == "staging" && geo == "eastus2") {
+                return "dig_cas_stage";
+            } else if (environment == "staging" && geo == "westeurope") {
+                return "staging_cas_eu";
+            } else if (environment == "staging" && geo == "southeastasia") {
+                return "staging_cas_eventsaps";
+            }
         }
 
         function expand(openPopups) {
             let splunkUrls = {
                 staging: [
                     'https://citrixsys.splunkcloud.com/en-US/app/search_workspace/search?earliest=$TIMERANGE$&latest=now&q=search%20index%3D%22staging_ws_services%22%20%20Product%3Dmicroapps%20Message%3D%22*$CARDID$*%22&display.page.search.mode=fast&dispatch.sample_ratio=1&display.general.type=events&sid=1571917362.1016431_3696DB04-2468-487B-9E6A-820F296FF343',
-                    'https://dashboards.citrite.net/en-US/app/dig_public/eventiot_hub_incoming_data?form.field1.earliest=$TIMERANGE$&form.field1.latest=now&form.source=(index%3Ddig_dev%20OR%20index%3Ddig_telemetry%20OR%20index%3Ddig_cas_daily%20OR%20index%3Ddig_cas_dev%20OR%20index%3Ddig_cas_stage%20OR%20index%3Ddig_cas_prod)%20source%3Deventhub_*%20NOT%20source%3Deventhub_*_sdb&form.sourcetype=*&form.value=$CARDID$&form.grouping1=%7C%20timechart%20count',
-                    'https://dashboards.citrite.net/en-US/app/dig_public/cas_iws_notifications?form.field1.earliest=$TIMERANGE$&form.field1.latest=now&form.environment=dig_cas_stage&form.tenantId=*&form.notificationTitle=*&form.channel=*&form.recipientOID=*&form.recipientEmail=*&form.recipientType=*&form.sourceOrigin=*&form.id=$CARDID$',
-                    'https://citrixsys.splunkcloud.com/en-US/app/search_workspace/search?earliest=$TIMERANGE$&latest=now&display.page.search.mode=fast&dispatch.sample_ratio=1&display.general.type=events&q=search%20index%3D%22staging_ws_services%22%20%20Product%3D%22com.citrix.uns%22%20ComponentName%3D%22cas-event-consumer%22%20Message%3D%22Message%20received%3A*$CARDID$*%22&sid=1571823185.4313494_46B8B93B-6AFB-413D-AC6C-DC6C638083D8',
-                    'https://citrixsys.splunkcloud.com/en-US/app/search_workspace/search?earliest=$TIMERANGE$&latest=now&display.page.search.mode=fast&dispatch.sample_ratio=1&display.general.type=events&q=search%20index%3D%22staging_ws_services%22%20%20Product%3D%22com.citrix.uns%22%20ComponentName%3D%22notification-service%22%20Message%3D%22Saved%20FeedCard%20*$CARDID$*%22&sid=1571823185.4313494_46B8B93B-6AFB-413D-AC6C-DC6C638083D8',
+                    'https://dashboards.citrite.net/en-US/app/dig_public/eventiot_hub_incoming_data?form.field1.earliest=$TIMERANGE$&form.field1.latest=now&form.source=(index%3Ddig_dev%20OR%20index%3Ddig_telemetry%20OR%20index%3Ddig_cas_daily%20OR%20index%3Ddig_cas_dev%20OR%20index%3Ddig_cas_stage%20OR%20index%3Ddig_cas_prod)%20source%3Deventhub_*%20NOT%20source%3Deventhub_*_sdb%20source%3Deventhub_*&form.sourcetype=*&form.value=$CARDID$&form.grouping1=%7C%20timechart%20count',
+                    'https://dashboards.citrite.net/en-US/app/dig_public/cas_iws_notifications?form.field1.earliest=$TIMERANGE$&form.field1.latest=now&form.environment=' + getCasIndex() + '&form.tenantId=*&form.notificationTitle=*&form.channel=*&form.recipientOID=*&form.recipientEmail=*&form.recipientType=*&form.sourceOrigin=*&form.id=$CARDID$',
+                    'https://citrixsys.splunkcloud.com/en-US/app/search_workspace/search?earliest=$TIMERANGE$&latest=now&display.page.search.mode=fast&dispatch.sample_ratio=1&display.general.type=events&q=search%20index%3D%22staging_ws_services%22%20%20Product%3D%22com.citrix.uns%22%20ComponentName%3D%22cas-event-consumer%22%20Message%3D%22Successfully%20created%20feed%20card*%22%20MessageUuid%3D%22$CARDID$%22&sid=1585494928.2563840_3696DB04-2468-487B-9E6A-820F296FF343'
                 ],
                 production: [
                     'https://citrixsys.splunkcloud.com/en-US/app/search_workspace/search?earliest=$TIMERANGE$&latest=now&q=search%20index%3D%22production_ws_services%22%20%20Product%3Dmicroapps%20Message%3D%22*$CARDID$*%22&display.page.search.mode=fast&dispatch.sample_ratio=1&display.general.type=events&sid=1571820589.4307218_46B8B93B-6AFB-413D-AC6C-DC6C638083D8',
-                    'https://dashboards.citrite.net/en-US/app/dig_public/eventiot_hub_incoming_data?form.field1.earliest=$TIMERANGE$&form.field1.latest=now&form.source=(index%3Ddig_dev%20OR%20index%3Ddig_telemetry%20OR%20index%3Ddig_cas_daily%20OR%20index%3Ddig_cas_dev%20OR%20index%3Ddig_cas_stage%20OR%20index%3Ddig_cas_prod)%20source%3Deventhub_*%20NOT%20source%3Deventhub_*_sdb&form.sourcetype=*&form.value=$CARDID$&form.grouping1=%7C%20timechart%20count',
-                    'https://dashboards.citrite.net/en-US/app/dig_public/cas_iws_notifications?form.field1.earliest=$TIMERANGE$&form.field1.latest=now&form.environment=dig_cas_prod&form.tenantId=*&form.notificationTitle=*&form.channel=*&form.recipientOID=*&form.recipientEmail=*&form.recipientType=*&form.sourceOrigin=*&form.id=$CARDID$',
-                    'https://citrixsys.splunkcloud.com/en-US/app/search_workspace/search?earliest=$TIMERANGE$&latest=now&display.page.search.mode=fast&dispatch.sample_ratio=1&display.general.type=events&q=search%20index%3D%22production_ws_services%22%20%20Product%3D%22com.citrix.uns%22%20ComponentName%3D%22cas-event-consumer%22%20Message%3D%22Message%20received%3A*$CARDID$*%22&sid=1571823185.4313494_46B8B93B-6AFB-413D-AC6C-DC6C638083D8',
-                    'https://citrixsys.splunkcloud.com/en-US/app/search_workspace/search?earliest=$TIMERANGE$&latest=now&display.page.search.mode=fast&dispatch.sample_ratio=1&display.general.type=events&q=search%20index%3D%22production_ws_services%22%20%20Product%3D%22com.citrix.uns%22%20ComponentName%3D%22notification-service%22%20Message%3D%22Saved%20FeedCard%20*$CARDID$*%22&sid=1571823185.4313494_46B8B93B-6AFB-413D-AC6C-DC6C638083D8',
+                    'https://dashboards.citrite.net/en-US/app/dig_public/eventiot_hub_incoming_data?form.field1.earliest=$TIMERANGE$&form.field1.latest=now&form.source=(index%3Ddig_dev%20OR%20index%3Ddig_telemetry%20OR%20index%3Ddig_cas_daily%20OR%20index%3Ddig_cas_dev%20OR%20index%3Ddig_cas_stage%20OR%20index%3Ddig_cas_prod)%20source%3Deventhub_*%20NOT%20source%3Deventhub_*_sdb%20source%3Deventhub_*&form.sourcetype=*&form.value=$CARDID$&form.grouping1=%7C%20timechart%20count',
+                    'https://dashboards.citrite.net/en-US/app/dig_public/cas_iws_notifications?form.field1.earliest=$TIMERANGE$&form.field1.latest=now&form.environment=' + getCasIndex() + '&form.tenantId=*&form.notificationTitle=*&form.channel=*&form.recipientOID=*&form.recipientEmail=*&form.recipientType=*&form.sourceOrigin=*&form.id=$CARDID$',
+                    'https://citrixsys.splunkcloud.com/en-US/app/search_workspace/search?earliest=$TIMERANGE$&latest=now&display.page.search.mode=fast&dispatch.sample_ratio=1&display.general.type=events&q=search%20index%3D%22production_ws_services%22%20%20Product%3D%22com.citrix.uns%22%20ComponentName%3D%22cas-event-consumer%22%20Message%3D%22Successfully%20created%20feed%20card*%22%20MessageUuid%3D%22$CARDID$%22&sid=1585494928.2563840_3696DB04-2468-487B-9E6A-820F296FF343'
                 ]
-            };
+            }
 
 
             const formElements = document.getElementById("form").elements;
@@ -129,8 +157,7 @@
 
     <h1>UNS Splunk Expander</h1>
 
-    <div>Tool for opening Splunk dashboards for easier tracking of Workspace cards.<br/>
-        (Note: Disable popup blocking in the browser.)
+    <div>Tool for opening Splunk dashboards for easier tracking of Workspace cards.
     </div>
 
     <form onsubmit="formSubmit();" id="form">
@@ -153,12 +180,21 @@
             <span class="example">Example: 8d4a305e-5912-41e4-8abc-bb87f89ab97f</span>
         </p>
 
-        <p>
-            <label for="staging"><input type="radio" name="environment" value="staging" id="staging" onchange="uuidChanged()"><span>Staging</span></label>
-            <label for="production"><input type="radio" name="environment" value="production" id="production" onchange="uuidChanged()"><span>Production</span></label>
-        </p>
+        <div class="radio-group">
+            <div>
+                <label for="staging"><input type="radio" name="environment" value="staging" id="staging" onchange="uuidChanged()"><span>Staging</span></label>
+                <label for="production"><input type="radio" name="environment" value="production" id="production" onchange="uuidChanged()"><span>Production</span></label>
+            </div>
+            <div>
+                <label for="eastus2"><input type="radio" name="geo" id="eastus2" value="eastus2" onchange="uuidChanged()"><span>US</span></label>
+                <label for="westeurope"><input type="radio" name="geo" id="westeurope" value="westeurope" onchange="uuidChanged()"><span>EU</span></label>
+                <label for="southeastasia"><input type="radio" name="geo" id="southeastasia" value="southeastasia" onchange="uuidChanged()"><span>APS</span></label>
+            </div>
+        </div>
 
         <input type="submit" id="expandButton" name="submit" value="Open Splunk dashboards as Tabs"/>
+
+        <p>(Note: You have to allow pop ups for this page.)</p>
 
     </form>
     <div id="fallbacks"></div>
@@ -191,6 +227,15 @@
         padding: 0;
         display: block;
         font-weight: bold;
+    }
+
+    .radio-group {
+        display: flex;
+        margin: 10px 0;
+    }
+
+    .radio-group div {
+        flex: 0.3;
     }
 
     .form-style-1 input[type=text],

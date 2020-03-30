@@ -70,17 +70,17 @@
             var environment = document.querySelector('input[name="environment"]:checked').value;
             var geo = document.querySelector('input[name="geo"]:checked').value;
 
-            if (environment == "production" && geo == "eastus2") {
+            if (environment === "production" && geo === "eastus2") {
                 return "dig_cas_prod";
-            } else if (environment == "production" && geo == "westeurope") {
+            } else if (environment === "production" && geo === "westeurope") {
                 return "production_cas_eu";
-            } else if (environment == "production" && geo == "southeastasia") {
+            } else if (environment === "production" && geo === "southeastasia") {
                 return "production_cas_eventsaps";
-            } else if (environment == "staging" && geo == "eastus2") {
+            } else if (environment === "staging" && geo === "eastus2") {
                 return "dig_cas_stage";
-            } else if (environment == "staging" && geo == "westeurope") {
+            } else if (environment === "staging" && geo === "westeurope") {
                 return "staging_cas_eu";
-            } else if (environment == "staging" && geo == "southeastasia") {
+            } else if (environment === "staging" && geo === "southeastasia") {
                 return "staging_cas_eventsaps";
             }
         }
